@@ -1,0 +1,10 @@
+# SeriousBot
+a VERY SERIOUS bot (like so SERIOUS you can't EVEN)
+
+# How do I use this bot?
+You don't. Stop it. Right now. NO!
+YOU CANT COMPREHEND THE SERIOUSNESS
+LIKE TOTALLY DONT JUST RUN THE DOCKERFILE, SUPER SERIOUS!
+
+# Can I at least contribute?
+NO! SUPER SERIOUS DO NOT CONTRIBUTE AT ALL. I TOTALLY DONT WANT YOU TO!
