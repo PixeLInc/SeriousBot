@@ -1,0 +1,191 @@
+from disco.bot import Plugin, Config
+from disco.types.message import MessageEmbed
+
+import random
+import requests
+import html
+import json
+
+class OpenTDB:
+
+    class Question:
+
+        def __init__(self, category, type, difficulty, question, correct_answer, incorrect_answers):
+            self.category = category
+            self.kind = type
+            self.difficulty = difficulty
+            self.question = html.unescape(question)
+            self.answer = html.unescape(correct_answer)
+            self.answers = [html.unescape(answer) for answer in incorrect_answers]
+            self.caller = None
+
+    def get_questions(self):
+        response = requests.get('https://opentdb.com/api.php?amount=10').text
+
+        data = json.loads(response)
+
+        if len(data) == 0:
+            return None
+
+        # Parse each into a `Question` class and store it in a list.
+        return [OpenTDB.Question(**k) for k in data['results']]
+
+    def get_random(self):
+        question_list = self.get_questions()
+
+        if question_list is None:
+            return None
+
+        question = random.choice(question_list)
+
+        all_answers = question.answers
+        all_answers.append(question.answer)
+
+        random.shuffle(all_answers)
+
+        question.answers = all_answers
+
+        return question
+
+class TriviaPluginConfig(Config):
+    mode = 'command'
+    lock = False
+
+@Plugin.with_config(TriviaPluginConfig)
+class TriviaPlugin(Plugin):
+    """
+        2 modes: Command, Wait
+
+        Command: Use `answer` to answer the trivia question
+        Wait: Wait for the callers response (wait for number in chat without a command)
+
+        TODO: Database load the mode and stuff into a map with the corresponding server or something.
+        This is temporary.
+    """
+
+    def load(self, ctx):
+        super(TriviaPlugin, self).load(ctx)
+        self.otd = OpenTDB()
+        self.active_servers = ctx.get('active_servers', {})
+
+    def unload(self, ctx):
+        ctx['active_servers'] = self.active_servers
+        super(TriviaPlugin, self).unload(ctx)
+
+    @Plugin.pre_command()
+    def on_pre_command(self, command, event, _par, _brack):
+        if event.msg.guild.id == 370720048773333002:
+            if event.msg.channel_id != 394291136975601665:
+                return None
+
+        return event
+
+    def generate_embed(self, question):
+        desc = ''
+        count = 1
+
+        for answer in question.answers:
+            desc += f"{count}. **{answer}**\n"
+            count += 1
+
+        embed = MessageEmbed()
+        embed.description = desc
+        embed.set_footer(text=f"Difficulty: {question.difficulty} | {question.category}")
+        embed.color = 0x9300ff
+
+        return embed
+
+
+    @Plugin.command('trivia', parser=True)
+    @Plugin.parser.add_argument('-h', action='store_true', help='Shows help')
+    @Plugin.parser.add_argument('-m', action='store_true', help='Gets current trivia mode')
+    @Plugin.parser.add_argument('-l', action='store_true', help='Gets current lock status')
+    @Plugin.parser.add_argument('--mode', help='Sets the current trivia mode', required=False)
+    @Plugin.parser.add_argument('--lock', help='User-lock trivia questions', required=False)
+    def on_trivia(self, event, args):
+        if event.author.id == 117789813427535878:
+            if args.h:
+                return event.msg.reply(event.parser.format_help())
+            if args.m:
+                return event.msg.reply(f"The current trivia mode is: **{self.config.mode}**")
+            if args.l:
+                return event.msg.reply(f"The current lock status is: **{self.config.lock}**")
+
+            if args.mode is not None:
+                self.config.mode = args.mode
+                return event.msg.reply(f"Set mode to **{args.mode}**")
+
+            if args.lock is not None:
+                isLocked = False
+                if args.lock == 'True':
+                    isLocked = True
+
+                self.config.lock = isLocked
+                return event.msg.reply(f"Questions locked? **{isLocked}**")
+
+
+        guild_id = event.msg.guild
+
+        if guild_id is None:
+            event.msg.reply('Something went wrong')
+            return
+
+        guild_id = guild_id.id
+        question = self.active_servers[guild_id] if guild_id in self.active_servers else self.otd.get_random()
+
+        if not guild_id in self.active_servers:
+            question.caller = event.author.id
+
+            self.active_servers[guild_id] = question
+        else:
+            event.msg.reply('There is already an active question!')
+
+        self.log.info('Question: %s\nAnswer: %s\n', question.question, question.answer)
+
+        if question is None:
+            event.msg.reply('Something went wrong!')
+            return
+
+        embed = self.generate_embed(question)
+
+        event.msg.reply(f"**{question.question}**", embed=embed)
+
+    @Plugin.command('answer', '<number:int>')
+    def on_answer(self, event, number):
+        if self.config.mode != 'command':
+            event.msg.reply('Sorry, command mode is disabled. Please just respond with the number you wish to use.')
+            return
+
+        guild_id = event.msg.guild.id
+
+        # Make sure there is an active question
+        if not guild_id in self.active_servers:
+            event.msg.reply('There is not currently an active question!')
+            return
+
+        question = self.active_servers[guild_id]
+
+        # Check if person calling it is the one answering as well for lock
+        if self.config.lock == 'True' or self.config.lock:
+            # Do checks
+            if question.caller != event.author.id:
+                return
+
+        # print(f"Number is: {number} or {number - 1}")
+
+        if number > len(question.answers):
+            event.msg.reply(f"Please input a number 1-{len(question.answers)}")
+            return
+
+        # print(f"{question.answers[number - 1]} | {question.answer}")
+        # print(f"LIST: {question.answers}")
+
+        # Now let's check if it's right or not
+        if question.answers[number - 1] == question.answer:
+            event.msg.reply('You got it right! Awesome job!')
+        else:
+            event.msg.reply(f"Nope, sorry.. The correct answer was **{question.answer}**")
+
+        del self.active_servers[guild_id]
+
+
