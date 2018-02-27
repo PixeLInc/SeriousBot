@@ -19,7 +19,7 @@ class FunPlugin(Plugin):
 
     @Plugin.command('dyk')
     def on_dyk(self, event):
-        # self.client.api.channels_typing(event.msg.channel_id)
+        self.client.api.channels_typing(event.msg.channel_id)
 
         (fact, name) = didyouknow.grab_fact()
 
@@ -29,15 +29,11 @@ class FunPlugin(Plugin):
         embed.timestamp = datetime.utcnow().isoformat()
         embed.color = '10038562'
 
-        with self.client.api.capture() as requests:
-            event.msg.reply('', embed=embed)
-            for request in requests:
-                print('Request Made: {}'.format(request.response))
-                print('Exception Thrown: {}'.format(request.exception))
+        event.msg.reply(embed=embed)
 
-    @Plugin.command('urban', '[phrase:str...]', disabled=True)
+    @Plugin.command('urban', '[phrase:str...]')
     def on_urban(self, event, phrase = None):
-        # self.client.api.channels_typing(event.msg.channel_id)
+        self.client.api.channels_typing(event.msg.channel_id)
 
         urban_entry = None
 

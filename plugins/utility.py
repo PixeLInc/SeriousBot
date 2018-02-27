@@ -5,6 +5,7 @@ from disco.api.http import APIException
 import sys
 import textwrap
 import traceback
+import subprocess
 
 from .utils import time_convert as tc
 
@@ -53,7 +54,17 @@ class UtilityPlugin(Plugin):
 
         event.msg.reply(':green_tick:')
 
-    # Plugin reloading
+    # Plugin reloading (and stuff)
+    @Plugin.command('update')
+    def on_update(self, event):
+        if event.author.id != 117789813427535878: # (IS_ME DECORATOR WHEN!? or ranks..?!)
+            return
+
+        proc = subprocess.Popen('git pull origin master', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
+        out, _ = proc.communicate()
+
+        event.msg.reply(f"```\n{out.decode().strip()}\n```")
+
     @Plugin.command('list', group='plugin')
     def on_list(self, event):
         if event.author.id != 117789813427535878:
@@ -65,6 +76,13 @@ class UtilityPlugin(Plugin):
     def on_reload(self, event, plugin_name):
         if event.author.id != 117789813427535878:
             return
+
+        if plugin_name == 'all':
+            to_reload = self.bot.plugins
+            del to_reload['UtilityPlugin'] # Find a way to reload the current plugin
+
+            [plugin.reload() for plugin in to_reload.values()]
+            return event.msg.reply(':ok_hand:')
 
         plugin = self.bot.plugins.get(plugin_name)
 
@@ -87,7 +105,7 @@ class UtilityPlugin(Plugin):
         self.bot.rmv_plugin(plugin.__class__)
         event.msg.reply(":ok_hand:")
 
-    @Plugin.command('load', '<plugin_name:str>', group='plugin')
+    @Plugin.command('load', '<plugin_name:str>', group='plugin', disabled=True)
     def on_load(self, event, plugin_name):
         if event.author.id != 117789813427535878:
             return
