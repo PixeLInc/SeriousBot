@@ -16,16 +16,22 @@ class UtilityPlugin(Plugin):
 
     @Plugin.command('help')
     def on_help(self, event):
-        commands = []
+        command_list = [command for (st, plugin) in self.bot.plugins.items() for command in plugin.commands] # LIST K o m p r e h e n s i o n
+        grouped = {'GENERAL': []}
 
-        for st, plugin in self.bot.plugins.items():
-            for command in plugin.commands:
-                if command.name == event.command.name:
-                    continue
+        for command in command_list:
+            if command.group is None:
+                grouped['GENERAL'].append(command.name)
+            else:
+                if grouped.get(command.group) is None:
+                    grouped[command.group] = []
+                grouped[command.group].append(command.name)
 
-                commands.append(command.name)
+        builder = ''
+        for key, item in grouped.items():
+            builder += f"**{key.upper()}:**\n{', '.join(item)}\n\n"
 
-        event.msg.reply(', '.join(commands))
+        event.msg.reply(builder)
 
     @Plugin.command('timeleft')
     def on_time_left(self, event):
@@ -48,6 +54,27 @@ class UtilityPlugin(Plugin):
             user_dm.send_message(f"You have been kicked from {event.guild.name} for **{reason}**")
 
             guild_member.kick(reason=reason)
+        except APIException as e:
+            print(e)
+            return event.msg.reply('Sorry, cant do that!')
+
+        event.msg.reply(':green_tick:')
+
+    @Plugin.command('ban', '<user:user> <reason:str...>')
+    def on_ban(self, event, user, reason):
+        if event.author.id != 117789813427535878:
+            return
+
+        if user is None:
+            return event.msg.reply('Invalid user!')
+
+        try:
+            user_dm = user.open_dm()
+            guild_member = event.guild.get_member(user)
+
+            user_dm.send_message(f"You have been **banned** from {event.guild.name} for **{reason}**")
+
+            guild_member.ban(0)
         except APIException as e:
             print(e)
             return event.msg.reply('Sorry, cant do that!')
@@ -137,6 +164,7 @@ class UtilityPlugin(Plugin):
 
         self._eval['env'].update({
             'bot': self.bot,
+            'event': event,
             'client': self.bot.client,
             'message': event.msg,
             'channel': event.msg.channel,
