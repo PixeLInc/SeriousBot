@@ -1,34 +1,36 @@
 import datetime
 
-def convert_time(to_date, hlist = None):
-    today = datetime.datetime.now()
-    ndate = (today + to_date)
-    if hlist is not None:
-        ndate = ndate.replace(hour=hlist[0], minute=hlist[1], second=hlist[2])
+def next_weekday(d, weekday, time):
+    """
+        Weekday: 0 - Monday, 1 - Tuesday, 2 - Wednsday, 3 - Thursday, 4 - Friday, 5 - Saturday, 6 - Sunday
+    """
+    d = d - datetime.timedelta(hours=6)
+    dr = d.replace(hour=time[0], minute=time[1], second=time[2])
+    delta = dr - d
 
-    delta = ndate - today
+    hours, minutes, seconds = (delta.seconds // 3600, (delta.seconds // 60) % 60, (delta.seconds) % 60)
 
-    days, seconds = delta.days, delta.seconds
-    hours = int(days / 24 + seconds // 3600)
-    minutes = (seconds % 3600) // 60
-    seconds = seconds % 60
+    days_ahead = weekday - d.weekday()
+    if days_ahead < 0 or (delta.days < 0 or (hours >= time[0] and minutes >= time[1] and seconds >= time[2])):
+        # It's for sure past the day, let's move on.
+        days_ahead += 7
 
-    return {'days': days, 'hours': hours, 'minutes': minutes, 'seconds': seconds}
+    return {'delta': delta, 'time_data': [days_ahead, hours, minutes, seconds], 'next_date': (dr + datetime.timedelta(days_ahead))}
 
 def get_next_friday():
-    friday = convert_time(datetime.timedelta((4 - datetime.datetime.now().weekday()) % 7), [21, 0, 0])
+    next_data = next_weekday(datetime.datetime.utcnow(), 4, [21, 0, 0])
+    time_data = next_data['time_data']
 
-    if friday.get('days', 0) == -1:
-        return 'The time has come. It is already done.'
+    if len(time_data) < 4:
+        return 'Error getting time!'
 
     return '{} day{}, {} hour{}, {} minute{}, {} second{}'.format(
-        friday.get('days', 0),
-        's' if friday.get('days', -1) != 1 else '',
-        friday.get('hours', 0),
-        's' if friday.get('hours', -1) != 1 else '',
-        friday.get('minutes', 0),
-        's' if friday.get('minutes', -1) != 1 else '',
-        friday.get('seconds', 0),
-        's' if friday.get('seconds', -1) != 1 else '',
-        )
-
+            time_data[0],
+            's' if time_data[0] != 1 else '', # THIS
+            time_data[1],
+            's' if time_data[1] != 1 else '', # IS
+            time_data[2],
+            's' if time_data[2] != 1 else '', # A
+            time_data[3],
+            's' if time_data[3] != 1 else ''  # MEME
+            )
