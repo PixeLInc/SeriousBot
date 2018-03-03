@@ -13,7 +13,7 @@ def next_weekday(d, weekday, time):
     days_ahead = weekday - d.weekday()
     if days_ahead < 0 or (delta.days < 0 or (hours >= time[0] and minutes >= time[1] and seconds >= time[2])):
         # It's for sure past the day, let's move on.
-        days_ahead += 7
+        days_ahead += 6
 
     return {'delta': delta, 'time_data': [days_ahead, hours, minutes, seconds], 'next_date': (dr + datetime.timedelta(days_ahead))}
 
