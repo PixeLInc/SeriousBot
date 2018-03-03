@@ -1,6 +1,7 @@
 from disco.bot import Plugin
 from disco.bot import Bot
 from disco.api.http import APIException
+from disco.bot.command import CommandLevels
 
 import sys
 import textwrap
@@ -16,7 +17,7 @@ class UtilityPlugin(Plugin):
 
     @Plugin.command('help')
     def on_help(self, event):
-        command_list = [command for (st, plugin) in self.bot.plugins.items() for command in plugin.commands] # LIST K o m p r e h e n s i o n
+        command_list = [command for command in self.bot.commands] # LIST K o m p r e h e n s i o n
         grouped = {'GENERAL': []}
 
         for command in command_list:
@@ -39,11 +40,8 @@ class UtilityPlugin(Plugin):
 
         event.msg.reply('Time left until game night: \n\n{}'.format(pfriday))
 
-    @Plugin.command('kick', '<user:user> <reason:str...>')
+    @Plugin.command('kick', '<user:user> <reason:str...>', level=CommandLevels.ADMIN)
     def on_kick(self, event, user, reason):
-        if event.author.id != 117789813427535878:
-            return
-
         if user is None:
             return event.msg.reply('Invalid User!')
 
@@ -60,11 +58,8 @@ class UtilityPlugin(Plugin):
 
         event.msg.reply(':green_tick:')
 
-    @Plugin.command('ban', '<user:user> <reason:str...>')
+    @Plugin.command('ban', '<user:user> <reason:str...>', level=CommandLevels.ADMIN)
     def on_ban(self, event, user, reason):
-        if event.author.id != 117789813427535878:
-            return
-
         if user is None:
             return event.msg.reply('Invalid user!')
 
@@ -81,29 +76,46 @@ class UtilityPlugin(Plugin):
 
         event.msg.reply(':green_tick:')
 
-    # Plugin reloading (and stuff)
-    @Plugin.command('update')
-    def on_update(self, event):
-        if event.author.id != 117789813427535878: # (IS_ME DECORATOR WHEN!? or ranks..?!)
-            return
+    # Level Management - THIS IS TEMPORARY!
+    @Plugin.command('set', '<user:user> <rank:str>', group='rank', level=CommandLevels.OWNER)
+    def on_rank_set(self, event, user, rank):
+        # for some reason you need all lower-case to get the enum
+        _rank = CommandLevels.get(rank.lower())
 
+        if not _rank:
+            return event.msg.reply('Invalid rank')
+
+        if not user: return
+
+        # Try and grab their current rank, if they have one and the current user's rank (which should be OWNER at this time)
+        _current_rank = self.bot.get_level(user)
+        _current_author_rank = self.bot.get_level(event.author)
+
+        if _current_rank and _current_author_rank:
+            if _current_rank > _current_author_rank:
+                return event.msg.reply('Woah there! You can\'t target this person.')
+
+        self.bot.config.levels[user.id] = _rank
+        event.msg.reply(f"{user.username} has been assigned '{rank}'")
+
+    @Plugin.command('list', group='rank', level=CommandLevels.OWNER)
+    def on_rank_list(self, event):
+        event.msg.reply(', '.join([level for level in CommandLevels._attrs.keys()]))
+
+    # Plugin reloading (and stuff)
+    @Plugin.command('update', level=CommandLevels.OWNER)
+    def on_update(self, event):
         proc = subprocess.Popen('git pull origin master', stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True)
         out, _ = proc.communicate()
 
         event.msg.reply(f"```\n{out.decode().strip()}\n```")
 
-    @Plugin.command('list', group='plugin')
-    def on_list(self, event):
-        if event.author.id != 117789813427535878:
-            return
-
+    @Plugin.command('list', group='plugin', level=CommandLevels.OWNER)
+    def on_plugin_list(self, event):
         event.msg.reply(', '.join(self.bot.plugins.keys()))
 
-    @Plugin.command('reload', '<plugin_name:str>', group='plugin')
-    def on_reload(self, event, plugin_name):
-        if event.author.id != 117789813427535878:
-            return
-
+    @Plugin.command('reload', '<plugin_name:str>', group='plugin', level=CommandLevels.OWNER)
+    def on_plugin_reload(self, event, plugin_name):
         if plugin_name == 'all':
             to_reload = self.bot.plugins
             del to_reload['UtilityPlugin'] # Find a way to reload the current plugin
@@ -119,11 +131,8 @@ class UtilityPlugin(Plugin):
         plugin.reload()
         event.msg.reply(":ok_hand:")
 
-    @Plugin.command('unload', '<plugin_name:str>', group='plugin')
-    def on_unload(self, event, plugin_name):
-        if event.author.id != 117789813427535878:
-            return
-
+    @Plugin.command('unload', '<plugin_name:str>', group='plugin', level=CommandLevels.OWNER)
+    def on_plugin_unload(self, event, plugin_name):
         plugin = self.bot.plugins.get(plugin_name)
 
         if plugin is None:
@@ -132,11 +141,8 @@ class UtilityPlugin(Plugin):
         self.bot.rmv_plugin(plugin.__class__)
         event.msg.reply(":ok_hand:")
 
-    @Plugin.command('load', '<plugin_name:str>', group='plugin', disabled=True)
-    def on_load(self, event, plugin_name):
-        if event.author.id != 117789813427535878:
-            return
-
+    @Plugin.command('load', '<plugin_name:str>', group='plugin', level=CommandLevels.OWNER, disabled=True)
+    def on_plugin_load(self, event, plugin_name):
         if self.bot.plugins.get(plugin_name) is not None:
             return event.msg.reply(f"{plugin_name} already exists.")
 

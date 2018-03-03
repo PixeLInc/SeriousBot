@@ -1,5 +1,6 @@
 from disco.bot import Plugin, Config
 from disco.types.message import MessageEmbed
+from disco.bot.command import CommandLevels
 
 import random
 import requests
@@ -74,6 +75,10 @@ class TriviaPlugin(Plugin):
 
     @Plugin.pre_command()
     def on_pre_command(self, command, event, _par, _brack):
+        user_level = self.bot.get_level(event.author)
+        if user_level and user_level >= CommandLevels.MOD:
+            return event
+
         if event.msg.guild.id == 370720048773333002:
             if event.msg.channel_id != 394291136975601665:
                 return None
