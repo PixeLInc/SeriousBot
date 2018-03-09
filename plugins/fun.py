@@ -6,9 +6,13 @@ from datetime import datetime
 import random
 
 from .dyk import didyouknow
+from .utils.roast import Roast
 import urbandictionary as ud
 
 class FunPlugin(Plugin):
+
+    def load(self, ctx):
+        self.roaster = Roast()
 
     @Plugin.pre_command()
     def on_pre_command(self, command, event, _par, _brack):
@@ -70,4 +74,11 @@ class FunPlugin(Plugin):
             embed.color = '5824574'
 
             event.msg.reply(embed=embed)
+
+    @Plugin.command('roast')
+    def on_roast(self, event):
+        roast = self.roaster.get_random()
+
+        event.msg.reply(f"{event.author.mention}, {roast}")
+
 

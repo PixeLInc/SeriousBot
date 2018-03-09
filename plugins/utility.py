@@ -14,10 +14,11 @@ class UtilityPlugin(Plugin):
 
     def load(self, ctx):
         self._eval = {}
+        self._hidden_commands = ['eval', 'update']
 
     @Plugin.command('help')
     def on_help(self, event):
-        command_list = [command for command in self.bot.commands] # LIST K o m p r e h e n s i o n
+        command_list = [command for command in self.bot.commands if command.name not in self._hidden_commands] # LIST K o m p r e h e n s i o n
         grouped = {'GENERAL': []}
 
         for command in command_list:
