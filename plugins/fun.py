@@ -7,12 +7,20 @@ import random
 
 from .dyk import didyouknow
 from .utils.roast import Roast
+from .utils.reddit_scraper import Reddit
 import urbandictionary as ud
 
 class FunPlugin(Plugin):
 
     def load(self, ctx):
         self.roaster = Roast()
+        self.reddit = Reddit('dankmemes')
+
+        # Just scrape them right off the bat and get it over with
+        # TODO: Sync them every now and then?
+        self.memes = self.reddit.scrape_posts()
+
+        print(f"Loaded {len(self.memes)} memes into the cache.")
 
     @Plugin.pre_command()
     def on_pre_command(self, command, event, _par, _brack):
@@ -80,5 +88,9 @@ class FunPlugin(Plugin):
         roast = self.roaster.get_random()
 
         event.msg.reply(f"{event.author.mention}, {roast}")
+
+    @Plugin.command('meme')
+    def on_reddit(self, event):
+        event.msg.reply(self.reddit.random_url(self.memes))
 
 
