@@ -1,5 +1,5 @@
 from disco.bot import Plugin
-from disco.types.message import MessageEmbed
+from disco.types.message import MessageEmbed, MessageEmbedImage
 from disco.bot.command import CommandLevels
 
 from datetime import datetime
@@ -91,6 +91,19 @@ class FunPlugin(Plugin):
 
     @Plugin.command('meme')
     def on_reddit(self, event):
-        event.msg.reply(self.reddit.random_url(self.memes))
+        random_post = self.reddit.random_post(self.memes)
+
+        # permissions check
+        bot_perms = event.channel.get_permissions(self.state.me.id)
+        if bot_perms.administrator or bot_perms.embed_links:
+            embed = MessageEmbed()
+            embed.title = random_post.title
+            embed.url = random_post.permalink
+            embed.image = MessageEmbedImage(url=random_post.url)
+
+            event.msg.reply(embed=embed)
+        else:
+            # Send a normal message.
+            event.msg.reply(random_post.url)
 
 

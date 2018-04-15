@@ -48,7 +48,7 @@ class UtilityPlugin(Plugin):
 
         try:
             user_dm = user.open_dm()
-            guild_member = event.guild.get_member(user)
+            guild_member = event.guild.members.get(user.id)
 
             user_dm.send_message(f"You have been kicked from {event.guild.name} for **{reason}**")
 
@@ -66,7 +66,7 @@ class UtilityPlugin(Plugin):
 
         try:
             user_dm = user.open_dm()
-            guild_member = event.guild.get_member(user)
+            guild_member = event.guild.members.get(user.id)
 
             user_dm.send_message(f"You have been **banned** from {event.guild.name} for **{reason}**")
 

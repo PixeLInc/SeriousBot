@@ -3,7 +3,7 @@ config.yaml
 *.pyo
 
 __pycache__/
-plugins/__pycache__/
-plugins/utils/__pycache__/
+serious_bot/plugins/__pycache__/
+serious_bot/plugins/utils/__pycache__/
 
 tests/

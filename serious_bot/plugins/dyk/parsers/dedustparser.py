@@ -6,7 +6,7 @@ class DEDustParser(BaseParser):
     def __init__(self):
         self.name = 'Penrouk'
 
-        loaded_file = open('./plugins/dyk/parsers/de_dust.txt', 'r')
+        loaded_file = open('./serious_bot/plugins/dyk/parsers/de_dust.txt', 'r')
         self.lines = loaded_file.readlines()
         loaded_file.close()
 

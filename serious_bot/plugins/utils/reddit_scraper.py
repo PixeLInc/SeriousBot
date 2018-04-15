@@ -10,7 +10,8 @@ class Reddit:
             self.author = data['author']
             self.nsfw = data['over_18']
             self.url = data['url']
-            self.permalink = data['permalink']
+            self.permalink = f"https://www.reddit.com{data['permalink']}"
+            self.title = data['title']
 
     def __init__(self, sub, limit = 100):
         self.url = f"https://www.reddit.com/r/{sub}/.json?limit={limit}"
@@ -27,12 +28,10 @@ class Reddit:
         # what a hacky way to do this... kms
         return [Reddit.Post(k['data']) for k in data['data']['children'] if ~k['data']['url'].endswith('/')]
 
-    def random_url(self, posts):
+    def random_post(self, posts):
         if len(posts) == 0: return ''
 
-        random_post = random.choice(posts)
-
-        return random_post.url
+        return random.choice(posts)
 
 
 

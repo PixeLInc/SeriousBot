@@ -2,6 +2,10 @@ from disco.bot import Plugin, Config
 from disco.types.message import MessageEmbed
 from disco.bot.command import CommandLevels
 
+from serious_bot.models.user import User, Trivia
+from peewee import fn, JOIN, SQL
+import traceback
+
 import random
 import requests
 import html
@@ -154,6 +158,46 @@ class TriviaPlugin(Plugin):
         embed = self.generate_embed(question)
 
         event.msg.reply(f"**{question.question}**", embed=embed)
+
+
+    # Trivia subcommands
+    @Plugin.command('leaderboard', group='trivia', parser = True)
+    @Plugin.parser.add_argument('-g', action='store_true', help='Show global stats', required=False)
+    def on_trivia_leaderboard(self, event, args):
+        try:
+            if args.g:
+                users = list(Trivia.select(
+                    Trivia.user_id,
+                    Trivia.correct_answers,
+                    Trivia.incorrect_answers,
+                    Trivia.points
+                ).order_by(SQL('points').desc()).limit(5).tuples())
+            else:
+                users = list(Trivia.select(
+                    Trivia.user_id,
+                    Trivia.correct_answers,
+                    Trivia.incorrect_answers,
+                    Trivia.points
+                ).where(
+                    event.guild.id == Trivia.guild_id
+                ).order_by(SQL('points').desc()).limit(5).tuples())
+
+        except Exception as e:
+            print(traceback.format_exc())
+            return event.msg.reply('Failed to grab leaderboard stats: ```{}```'.format(e))
+
+        event.msg.reply('**TOP TRIVIA EXPERTS**\n' + (len(users) > 0 and '\n'.join(
+            '{}. **{}** {}\n <:green_tick:241582286204567552:> {} <:red_tick:241582286204567552:> {}\n**{}** points'.format(
+                i + 1,
+                (self.state.users.get(row[0]) and self.state.users.get(row[0]).username or 'Invalid User'),
+                ':crown:' if i == 0 else '',
+                row[1],
+                row[2],
+                row[3]
+            ) for i, row in enumerate(users)) or '***No trivia stats found for this server***'
+        ))
+
+    # End
 
     @Plugin.command('answer', '<number:int>')
     def on_answer(self, event, number):
