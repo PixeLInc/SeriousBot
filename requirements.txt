@@ -1,4 +1,6 @@
 pyyaml
 bs4
 urbandictionary
-psycogp2
+psycopg2
+peewee
+

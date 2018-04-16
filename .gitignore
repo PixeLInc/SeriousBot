@@ -7,3 +7,6 @@ serious_bot/plugins/__pycache__/
 serious_bot/plugins/utils/__pycache__/
 
 tests/
+.data/
+
+database/sql_scripts/trivia_data.sql

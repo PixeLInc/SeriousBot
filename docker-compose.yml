@@ -1,0 +1,23 @@
+version: '3.1'
+
+services:
+  pg_db:
+    image: postgres
+    restart: always
+    volumes:
+      - ./database/sql_scripts/trivia_data.sql:/docker-entrypoint-initdb.d/trivia_data.sql
+    environment:
+      POSTGRES_DB: seriousbot_dev
+
+  pg_adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 5554:5554
+
+  serious_bot:
+    build: .
+    command: bash start.sh
+    depends_on:
+      - pg_db
+    restart: always

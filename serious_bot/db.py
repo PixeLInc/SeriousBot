@@ -19,6 +19,7 @@ def init():
     database.initialize(PostgresqlExtDatabase(
         'seriousbot_dev',
         user='postgres',
+        host='pg_db',
         port=5432,
         autorollback=True))
 
