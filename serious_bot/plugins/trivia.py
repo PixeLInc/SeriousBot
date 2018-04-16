@@ -187,7 +187,7 @@ class TriviaPlugin(Plugin):
             return event.msg.reply('Failed to grab leaderboard stats: ```{}```'.format(e))
 
         event.msg.reply('**TOP TRIVIA EXPERTS**\n' + (len(users) > 0 and '\n'.join(
-            '{}. **{}** {}\n <:green_tick:241582286204567552:> {} <:red_tick:241582286204567552:> {}\n**{}** points'.format(
+            '{}. **{}** {}\n <:green_tick:435164337167138826> {} <:red_tick:435164344125489155> {}\n**{}** points'.format(
                 i + 1,
                 (self.state.users.get(row[0]) and self.state.users.get(row[0]).username or 'Invalid User'),
                 ':crown:' if i == 0 else '',
