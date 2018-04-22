@@ -228,12 +228,36 @@ class TriviaPlugin(Plugin):
 
         # print(f"{question.answers[number - 1]} | {question.answer}")
         # print(f"LIST: {question.answers}")
+        trivia_stats = Trivia.get_or_create(
+           guild_id = guild_id,
+           user_id = event.author.id,
+           defaults = {
+               'correct_answers': 0,
+               'incorrect_answers': 0,
+               'points': 0
+           }
+        )
 
         # Now let's check if it's right or not
         if question.answers[number - 1] == question.answer:
-            event.msg.reply('You got it right! Awesome job!')
+            if question.difficulty == 'hard':
+                points_gained = 3
+            elif question.difficulty == 'medium':
+                points_gained = 2
+            else: points_gained = 1
+
+            event.msg.reply(f'You got it right! Awesome job!\nYou got **{points_gained}** point(s)!')
+
+            Trivia.update({
+                Trivia.points: Trivia.points + points_gained,
+                Trivia.correct_answers: Trivia.correct_answers + 1
+            }).where(Trivia.user_id == event.author.id).execute()
         else:
             event.msg.reply(f"Nope, sorry.. The correct answer was **{question.answer}**")
+
+            Trivia.update({
+                Trivia.incorrect_answers: Trivia.incorrect_answers + 1
+            }).where(Trivia.user_id == event.author.id).execute()
 
         del self.active_servers[guild_id]
 
