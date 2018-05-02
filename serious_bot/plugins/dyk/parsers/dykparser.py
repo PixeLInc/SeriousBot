@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import random
 import requests
 
+
 class DYKParser(BaseParser):
 
     def __init__(self):

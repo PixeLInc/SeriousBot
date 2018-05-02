@@ -2,14 +2,15 @@ from disco.bot import Plugin, Config
 from disco.types.message import MessageEmbed
 from disco.bot.command import CommandLevels
 
-from serious_bot.models.user import User, Trivia
-from peewee import fn, JOIN, SQL
+from serious_bot.models.user import Trivia
+from peewee import SQL
 import traceback
 
 import random
 import requests
 import html
 import json
+
 
 class OpenTDB:
 
@@ -52,9 +53,11 @@ class OpenTDB:
 
         return question
 
+
 class TriviaPluginConfig(Config):
     mode = 'command'
     lock = False
+
 
 @Plugin.with_config(TriviaPluginConfig)
 class TriviaPlugin(Plugin):
@@ -104,7 +107,6 @@ class TriviaPlugin(Plugin):
 
         return embed
 
-
     @Plugin.command('trivia', parser=True)
     @Plugin.parser.add_argument('-h', action='store_true', help='Shows help')
     @Plugin.parser.add_argument('-m', action='store_true', help='Gets current trivia mode')
@@ -132,7 +134,6 @@ class TriviaPlugin(Plugin):
                 self.config.lock = isLocked
                 return event.msg.reply(f"Questions locked? **{isLocked}**")
 
-
         guild_id = event.msg.guild
 
         if guild_id is None:
@@ -142,7 +143,7 @@ class TriviaPlugin(Plugin):
         guild_id = guild_id.id
         question = self.active_servers[guild_id] if guild_id in self.active_servers else self.otd.get_random()
 
-        if not guild_id in self.active_servers:
+        if guild_id not in self.active_servers:
             question.caller = event.author.id
 
             self.active_servers[guild_id] = question
@@ -159,9 +160,8 @@ class TriviaPlugin(Plugin):
 
         event.msg.reply(f"**{question.question}**", embed=embed)
 
-
     # Trivia subcommands
-    @Plugin.command('leaderboard', group='trivia', parser = True)
+    @Plugin.command('leaderboard', group='trivia', parser=True)
     @Plugin.parser.add_argument('-g', action='store_true', help='Show global stats', required=False)
     def on_trivia_leaderboard(self, event, args):
         try:
@@ -187,7 +187,7 @@ class TriviaPlugin(Plugin):
             return event.msg.reply('Failed to grab leaderboard stats: ```{}```'.format(e))
 
         event.msg.reply('**TOP TRIVIA EXPERTS**\n' + (len(users) > 0 and '\n'.join(
-            '{}. **{}** {}\n <:green_tick:435164337167138826> {} <:red_tick:435164344125489155> {}\n**{}** points'.format(
+            '{}. **{}** {}\n <:green_tick:435164337167138826> {} <:red_tick:435164344125489155> {}\n**{}** points'.format( # noqa
                 i + 1,
                 (self.state.users.get(row[0]) and self.state.users.get(row[0]).username or 'Invalid User'),
                 ':crown:' if i == 0 else '',
@@ -208,7 +208,7 @@ class TriviaPlugin(Plugin):
         guild_id = event.msg.guild.id
 
         # Make sure there is an active question
-        if not guild_id in self.active_servers:
+        if guild_id not in self.active_servers:
             event.msg.reply('There is not currently an active question!')
             return
 
@@ -226,12 +226,11 @@ class TriviaPlugin(Plugin):
             event.msg.reply(f"Please input a number 1-{len(question.answers)}")
             return
 
-        # print(f"{question.answers[number - 1]} | {question.answer}")
-        # print(f"LIST: {question.answers}")
+        # Used to just create a record if it doesn't already exist for the user.
         trivia_stats = Trivia.get_or_create(
-           guild_id = guild_id,
-           user_id = event.author.id,
-           defaults = {
+           guild_id=guild_id,
+           user_id=event.author.id,
+           defaults={
                'correct_answers': 0,
                'incorrect_answers': 0,
                'points': 0
@@ -244,9 +243,13 @@ class TriviaPlugin(Plugin):
                 points_gained = 3
             elif question.difficulty == 'medium':
                 points_gained = 2
-            else: points_gained = 1
+            else:
+                points_gained = 1
 
-            event.msg.reply(f'You got it right! Awesome job!\nYou got **{points_gained}** point(s)!')
+            event.msg.reply('You got it right! Awesome job!\nYou got **{}** point(s)! You now have **{}**'.format(
+                points_gained,
+                trivia_stats.point + points_gained
+            ))
 
             Trivia.update({
                 Trivia.points: Trivia.points + points_gained,
@@ -260,5 +263,3 @@ class TriviaPlugin(Plugin):
             }).where(Trivia.user_id == event.author.id).execute()
 
         del self.active_servers[guild_id]
-
-

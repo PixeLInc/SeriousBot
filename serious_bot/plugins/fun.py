@@ -10,6 +10,7 @@ from .utils.roast import Roast
 from .utils.reddit_scraper import Reddit
 import urbandictionary as ud
 
+
 class FunPlugin(Plugin):
 
     def load(self, ctx):
@@ -50,13 +51,13 @@ class FunPlugin(Plugin):
         event.msg.reply(embed=embed)
 
     @Plugin.command('urban', '[phrase:str...]')
-    def on_urban(self, event, phrase = None):
+    def on_urban(self, event, phrase=None):
         self.client.api.channels_typing(event.msg.channel_id)
 
         urban_entry = None
 
         if phrase is None:
-            urban_entry = random.choice(ud.random()) # grab some random words | list of urbandef
+            urban_entry = random.choice(ud.random())  # grab some random words | list of urbandef
         else:
             defs = ud.define(phrase)
 
@@ -105,5 +106,3 @@ class FunPlugin(Plugin):
         else:
             # Send a normal message.
             event.msg.reply(random_post.url)
-
-

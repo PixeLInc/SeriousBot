@@ -1,6 +1,7 @@
 from .baseparser import BaseParser
 import random
 
+
 class DEDustParser(BaseParser):
 
     def __init__(self):

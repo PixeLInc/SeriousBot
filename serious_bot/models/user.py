@@ -2,13 +2,14 @@ from serious_bot.db import BaseModel
 
 from peewee import BigIntegerField, TextField, SmallIntegerField
 
+
 @BaseModel.register
 class User(BaseModel):
-    id = BigIntegerField(primary_key = True)
+    id = BigIntegerField(primary_key=True)
     username = TextField()
     discriminator = SmallIntegerField()
 
-    user_rank = SmallIntegerField(default = 0)
+    user_rank = SmallIntegerField(default=0)
 
     class Meta:
         db_table = 'users'
@@ -25,7 +26,7 @@ class Trivia(BaseModel):
 
     correct_answers = SmallIntegerField()
     incorrect_answers = SmallIntegerField()
-    points = SmallIntegerField() # Small should be good.. right? :thonk:
+    points = SmallIntegerField()  # Small should be good.. right? :thonk:
 
     class Meta:
         db_table = 'trivia'

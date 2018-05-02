@@ -1,5 +1,6 @@
 import datetime
 
+
 def next_weekday(d, weekday, time):
     """
         Weekday: 0 - Monday, 1 - Tuesday, 2 - Wednsday, 3 - Thursday, 4 - Friday, 5 - Saturday, 6 - Sunday
@@ -15,7 +16,12 @@ def next_weekday(d, weekday, time):
         # It's for sure past the day, let's move on.
         days_ahead += 6
 
-    return {'delta': delta, 'time_data': [days_ahead, hours, minutes, seconds], 'next_date': (dr + datetime.timedelta(days_ahead))}
+    return {
+        'delta': delta,
+        'time_data': [days_ahead, hours, minutes, seconds],
+        'next_date': (dr + datetime.timedelta(days_ahead))
+    }
+
 
 def get_next_friday():
     next_data = next_weekday(datetime.datetime.utcnow(), 4, [21, 0, 0])
@@ -25,12 +31,12 @@ def get_next_friday():
         return 'Error getting time!'
 
     return '{} day{}, {} hour{}, {} minute{}, {} second{}'.format(
-            time_data[0],
-            's' if time_data[0] != 1 else '', # THIS
-            time_data[1],
-            's' if time_data[1] != 1 else '', # IS
-            time_data[2],
-            's' if time_data[2] != 1 else '', # A
-            time_data[3],
-            's' if time_data[3] != 1 else ''  # MEME
-            )
+        time_data[0],
+        's' if time_data[0] != 1 else '',  # THIS
+        time_data[1],
+        's' if time_data[1] != 1 else '',  # IS
+        time_data[2],
+        's' if time_data[2] != 1 else '',  # A
+        time_data[3],
+        's' if time_data[3] != 1 else ''  # MEME
+    )

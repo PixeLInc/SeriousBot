@@ -1,14 +1,12 @@
 from disco.bot import Plugin
-from disco.bot import Bot
 from disco.api.http import APIException
 from disco.bot.command import CommandLevels
 
-import sys
 import textwrap
-import traceback
 import subprocess
 
 from .utils import time_convert as tc
+
 
 class UtilityPlugin(Plugin):
 
@@ -18,7 +16,7 @@ class UtilityPlugin(Plugin):
 
     @Plugin.command('help')
     def on_help(self, event):
-        command_list = [command for command in self.bot.commands if command.name not in self._hidden_commands] # LIST K o m p r e h e n s i o n
+        command_list = [command for command in self.bot.commands if command.name not in self._hidden_commands]  # LIST K o m p r e h e n s i o n # noqa
         grouped = {'GENERAL': []}
 
         for command in command_list:
@@ -86,14 +84,14 @@ class UtilityPlugin(Plugin):
         if not _rank:
             return event.msg.reply('Invalid rank')
 
-        if not user: return
+        if not user:
+            return
 
-        # Try and grab their current rank, if they have one and the current user's rank (which should be OWNER at this time)
-        _current_rank = self.bot.get_level(user)
-        _current_author_rank = self.bot.get_level(event.author)
+        current_rank = self.bot.get_level(user)
+        author_rank = self.bot.get_level(event.author)
 
-        if _current_rank and _current_author_rank:
-            if _current_rank > _current_author_rank:
+        if current_rank and author_rank:
+            if current_rank > author_rank:
                 return event.msg.reply('Woah there! You can\'t target this person.')
 
         self.bot.config.levels[user.id] = _rank
@@ -119,7 +117,7 @@ class UtilityPlugin(Plugin):
     def on_plugin_reload(self, event, plugin_name):
         if plugin_name == 'all':
             to_reload = self.bot.plugins
-            del to_reload['UtilityPlugin'] # Find a way to reload the current plugin
+            del to_reload['UtilityPlugin']
 
             [plugin.reload() for plugin in to_reload.values()]
             return event.msg.reply(':ok_hand:')
@@ -159,7 +157,6 @@ class UtilityPlugin(Plugin):
         self.bot.add_plugin(plugin)
         event.msg.reply(":ok_hand:")
 
-
     # E V A L
     @Plugin.command('eval', '<code:str...>')
     def on_eval(self, event, code):
@@ -195,9 +192,7 @@ class UtilityPlugin(Plugin):
                 output = 'No output'
 
         except Exception as e:
-            # tback = ''.join(traceback.format_exception(type(e), e, e.__traceback__)).replace('/mnt/backup/Coding/Langs/Python/gobot-py/plugins/', '')
             output = str(e)
-
 
         message = '```\n{}```'.format(output)
 
@@ -205,5 +200,3 @@ class UtilityPlugin(Plugin):
             message = message[:1980] + '... (truncated)'
 
         event.msg.reply(message)
-
-

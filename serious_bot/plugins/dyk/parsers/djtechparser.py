@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import random
 import requests
 
+
 class DJTechParser(BaseParser):
 
     def __init__(self):
@@ -19,5 +20,3 @@ class DJTechParser(BaseParser):
             return random.choice(text_list).text.replace("\n\t\t", "")
         else:
             return None
-
-

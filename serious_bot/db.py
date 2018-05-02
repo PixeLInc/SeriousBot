@@ -2,7 +2,8 @@ from peewee import Proxy, Model
 from playhouse.postgres_ext import PostgresqlExtDatabase
 
 database = Proxy()
-MODELS= []
+MODELS = []
+
 
 class BaseModel(Model):
     class Meta:
@@ -14,12 +15,12 @@ class BaseModel(Model):
         MODELS.append(cls)
         return cls
 
+
 def init():
     print('INITIALIZING DATABASE AND LOADING MODELS...')
     database.initialize(PostgresqlExtDatabase(
         'seriousbot_dev',
         user='postgres',
-        host='pg_db',
         port=5432,
         autorollback=True))
 
@@ -30,10 +31,10 @@ def init():
         if hasattr(model, 'SQL'):
             database.execute_sql(model.SQL)
 
+
 def reset():
     init()
 
     for model in MODELS:
         model.drop_table(True)
         model.create_table(True)
-

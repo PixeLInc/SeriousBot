@@ -6,6 +6,7 @@ import random
 
 PARSERS = [dykparser.DYKParser(), djtechparser.DJTechParser(), dedustparser.DEDustParser()]
 
+
 def grab_fact():
     parser = random.choice(PARSERS)
 
