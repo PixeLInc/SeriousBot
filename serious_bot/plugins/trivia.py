@@ -248,7 +248,7 @@ class TriviaPlugin(Plugin):
 
             event.msg.reply('You got it right! Awesome job!\nYou got **{}** point(s)! You now have **{}**'.format(
                 points_gained,
-                trivia_stats.point + points_gained
+                trivia_stats.points + points_gained
             ))
 
             Trivia.update({
