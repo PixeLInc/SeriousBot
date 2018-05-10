@@ -227,7 +227,9 @@ class TriviaPlugin(Plugin):
             return
 
         # Used to just create a record if it doesn't already exist for the user.
-        trivia_stats = Trivia.get_or_create(
+
+        # Returns the created/got stats and True/False if it was created or not.
+        trivia_stats, _created = Trivia.get_or_create(
            guild_id=guild_id,
            user_id=event.author.id,
            defaults={
