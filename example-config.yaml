@@ -1,0 +1,15 @@
+token: 'your_bot_token_here_without_the_prefix_bot'
+
+bot:
+    commands_require_mention: false
+    commands_prefix: '>'
+    levels:
+        # levels must be lowercase, it cant be Owner, or OWNER, only owner
+        117789813427535878: 'owner'
+    plugins:
+        - serious_bot.plugins.core
+        - serious_bot.plugins.events
+        - serious_bot.plugins.utility
+        - serious_bot.plugins.trivia
+        - serious_bot.plugins.fun
+
