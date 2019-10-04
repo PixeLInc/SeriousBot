@@ -12,10 +12,9 @@ import urbandictionary as ud
 
 
 class FunPlugin(Plugin):
-
     def load(self, ctx):
         self.roaster = Roast()
-        self.reddit = Reddit('dankmemes')
+        self.reddit = Reddit("dankmemes")
 
         # Just scrape them right off the bat and get it over with
         # TODO: Sync them every now and then?
@@ -36,7 +35,7 @@ class FunPlugin(Plugin):
 
         return event
 
-    @Plugin.command('dyk')
+    @Plugin.command("dyk")
     def on_dyk(self, event):
         self.client.api.channels_typing(event.msg.channel_id)
 
@@ -46,18 +45,20 @@ class FunPlugin(Plugin):
         embed.description = f"**{fact}**"
         embed.set_footer(text=name)
         embed.timestamp = datetime.utcnow().isoformat()
-        embed.color = '10038562'
+        embed.color = "10038562"
 
         event.msg.reply(embed=embed)
 
-    @Plugin.command('urban', '[phrase:str...]')
+    @Plugin.command("urban", "[phrase:str...]")
     def on_urban(self, event, phrase=None):
         self.client.api.channels_typing(event.msg.channel_id)
 
         urban_entry = None
 
         if phrase is None:
-            urban_entry = random.choice(ud.random())  # grab some random words | list of urbandef
+            urban_entry = random.choice(
+                ud.random()
+            )  # grab some random words | list of urbandef
         else:
             defs = ud.define(phrase)
 
@@ -65,32 +66,35 @@ class FunPlugin(Plugin):
                 urban_entry = defs[0]
 
         if urban_entry is None:
-            event.msg.reply('Failed to find a definition for that!')
+            event.msg.reply("Failed to find a definition for that!")
         else:
             definition = urban_entry.definition
             # Let's do a little... checking!
             if len(definition) >= 2000:
-                definition = definition[:1950] + '...'
+                definition = definition[:1950] + "..."
 
             # Let's construct an embed :)
             embed = MessageEmbed()
             embed.title = f"**Defintion of {urban_entry.word}**"
             embed.description = definition
 
-            embed.add_field(name='Example', value=urban_entry.example)
-            embed.add_field(name='Rating', value=f"{urban_entry.upvotes} 👍 | {urban_entry.downvotes} 👎")
+            embed.add_field(name="Example", value=urban_entry.example)
+            embed.add_field(
+                name="Rating",
+                value=f"{urban_entry.upvotes} 👍 | {urban_entry.downvotes} 👎",
+            )
 
-            embed.color = '5824574'
+            embed.color = "5824574"
 
             event.msg.reply(embed=embed)
 
-    @Plugin.command('roast')
+    @Plugin.command("roast")
     def on_roast(self, event):
         roast = self.roaster.get_random()
 
         event.msg.reply(f"{event.author.mention}, {roast}")
 
-    @Plugin.command('meme')
+    @Plugin.command("meme")
     def on_reddit(self, event):
         random_post = self.reddit.random_post(self.memes)
 

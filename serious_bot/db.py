@@ -17,18 +17,18 @@ class BaseModel(Model):
 
 
 def init():
-    print('INITIALIZING DATABASE AND LOADING MODELS...')
-    database.initialize(PostgresqlExtDatabase(
-        'seriousbot_dev',
-        user='postgres',
-        port=5432,
-        autorollback=True))
+    print("INITIALIZING DATABASE AND LOADING MODELS...")
+    database.initialize(
+        PostgresqlExtDatabase(
+            "seriousbot_dev", user="postgres", port=5432, autorollback=True
+        )
+    )
 
     for model in MODELS:
         print(f"Looping {model}")
         model.create_table(True)
 
-        if hasattr(model, 'SQL'):
+        if hasattr(model, "SQL"):
             database.execute_sql(model.SQL)
 
 

@@ -4,7 +4,11 @@ from .parsers import dedustparser
 
 import random
 
-PARSERS = [dykparser.DYKParser(), djtechparser.DJTechParser(), dedustparser.DEDustParser()]
+PARSERS = [
+    dykparser.DYKParser(),
+    djtechparser.DJTechParser(),
+    dedustparser.DEDustParser(),
+]
 
 
 def grab_fact():
@@ -14,6 +18,6 @@ def grab_fact():
 
     fact = parser.get_random()
     if fact is None:
-        return ('Failed to grab a fact!', None)
+        return ("Failed to grab a fact!", None)
     else:
         return (fact, parser.name)

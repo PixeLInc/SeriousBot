@@ -1,5 +1,4 @@
 class BaseParser:
-
     def __init__(self):
         self.name = "Unknown"
 

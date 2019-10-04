@@ -13,10 +13,16 @@ import json
 
 
 class OpenTDB:
-
     class Question:
-
-        def __init__(self, category, type, difficulty, question, correct_answer, incorrect_answers):
+        def __init__(
+            self,
+            category,
+            type,
+            difficulty,
+            question,
+            correct_answer,
+            incorrect_answers,
+        ):
             self.category = category
             self.kind = type
             self.difficulty = difficulty
@@ -26,7 +32,7 @@ class OpenTDB:
             self.caller = None
 
     def get_questions(self):
-        response = requests.get('https://opentdb.com/api.php?amount=10').text
+        response = requests.get("https://opentdb.com/api.php?amount=10").text
 
         data = json.loads(response)
 
@@ -34,7 +40,7 @@ class OpenTDB:
             return None
 
         # Parse each into a `Question` class and store it in a list.
-        return [OpenTDB.Question(**k) for k in data['results']]
+        return [OpenTDB.Question(**k) for k in data["results"]]
 
     def get_random(self):
         question_list = self.get_questions()
@@ -55,7 +61,7 @@ class OpenTDB:
 
 
 class TriviaPluginConfig(Config):
-    mode = 'command'
+    mode = "command"
     lock = False
 
 
@@ -74,10 +80,10 @@ class TriviaPlugin(Plugin):
     def load(self, ctx):
         super(TriviaPlugin, self).load(ctx)
         self.otd = OpenTDB()
-        self.active_servers = ctx.get('active_servers', {})
+        self.active_servers = ctx.get("active_servers", {})
 
     def unload(self, ctx):
-        ctx['active_servers'] = self.active_servers
+        ctx["active_servers"] = self.active_servers
         super(TriviaPlugin, self).unload(ctx)
 
     @Plugin.pre_command()
@@ -93,7 +99,7 @@ class TriviaPlugin(Plugin):
         return event
 
     def generate_embed(self, question):
-        desc = ''
+        desc = ""
         count = 1
 
         for answer in question.answers:
@@ -102,25 +108,39 @@ class TriviaPlugin(Plugin):
 
         embed = MessageEmbed()
         embed.description = desc
-        embed.set_footer(text=f"Difficulty: {question.difficulty} | {question.category}")
-        embed.color = 0x9300ff
+        embed.set_footer(
+            text=f"Difficulty: {question.difficulty} | {question.category}"
+        )
+        embed.color = 0x9300FF
 
         return embed
 
-    @Plugin.command('trivia', parser=True)
-    @Plugin.parser.add_argument('-h', action='store_true', help='Shows help')
-    @Plugin.parser.add_argument('-m', action='store_true', help='Gets current trivia mode')
-    @Plugin.parser.add_argument('-l', action='store_true', help='Gets current lock status')
-    @Plugin.parser.add_argument('--mode', help='Sets the current trivia mode', required=False)
-    @Plugin.parser.add_argument('--lock', help='User-lock trivia questions', required=False)
+    @Plugin.command("trivia", parser=True)
+    @Plugin.parser.add_argument("-h", action="store_true", help="Shows help")
+    @Plugin.parser.add_argument(
+        "-m", action="store_true", help="Gets current trivia mode"
+    )
+    @Plugin.parser.add_argument(
+        "-l", action="store_true", help="Gets current lock status"
+    )
+    @Plugin.parser.add_argument(
+        "--mode", help="Sets the current trivia mode", required=False
+    )
+    @Plugin.parser.add_argument(
+        "--lock", help="User-lock trivia questions", required=False
+    )
     def on_trivia(self, event, args):
         if event.author.id == 117789813427535878:
             if args.h:
                 return event.msg.reply(event.parser.format_help())
             if args.m:
-                return event.msg.reply(f"The current trivia mode is: **{self.config.mode}**")
+                return event.msg.reply(
+                    f"The current trivia mode is: **{self.config.mode}**"
+                )
             if args.l:
-                return event.msg.reply(f"The current lock status is: **{self.config.lock}**")
+                return event.msg.reply(
+                    f"The current lock status is: **{self.config.lock}**"
+                )
 
             if args.mode is not None:
                 self.config.mode = args.mode
@@ -128,7 +148,7 @@ class TriviaPlugin(Plugin):
 
             if args.lock is not None:
                 isLocked = False
-                if args.lock == 'True':
+                if args.lock == "True":
                     isLocked = True
 
                 self.config.lock = isLocked
@@ -137,23 +157,27 @@ class TriviaPlugin(Plugin):
         guild_id = event.msg.guild
 
         if guild_id is None:
-            event.msg.reply('Something went wrong')
+            event.msg.reply("Something went wrong")
             return
 
         guild_id = guild_id.id
-        question = self.active_servers[guild_id] if guild_id in self.active_servers else self.otd.get_random()
+        question = (
+            self.active_servers[guild_id]
+            if guild_id in self.active_servers
+            else self.otd.get_random()
+        )
 
         if guild_id not in self.active_servers:
             question.caller = event.author.id
 
             self.active_servers[guild_id] = question
         else:
-            event.msg.reply('There is already an active question!')
+            event.msg.reply("There is already an active question!")
 
-        self.log.info('Question: %s\nAnswer: %s\n', question.question, question.answer)
+        self.log.info("Question: %s\nAnswer: %s\n", question.question, question.answer)
 
         if question is None:
-            event.msg.reply('Something went wrong!')
+            event.msg.reply("Something went wrong!")
             return
 
         embed = self.generate_embed(question)
@@ -161,61 +185,88 @@ class TriviaPlugin(Plugin):
         event.msg.reply(f"**{question.question}**", embed=embed)
 
     # Trivia subcommands
-    @Plugin.command('leaderboard', group='trivia', parser=True)
-    @Plugin.parser.add_argument('-g', action='store_true', help='Show global stats', required=False)
+    @Plugin.command("leaderboard", group="trivia", parser=True)
+    @Plugin.parser.add_argument(
+        "-g", action="store_true", help="Show global stats", required=False
+    )
     def on_trivia_leaderboard(self, event, args):
         try:
             if args.g:
-                users = list(Trivia.select(
-                    Trivia.user_id,
-                    Trivia.correct_answers,
-                    Trivia.incorrect_answers,
-                    Trivia.points
-                ).order_by(SQL('points').desc()).limit(5).tuples())
+                users = list(
+                    Trivia.select(
+                        Trivia.user_id,
+                        Trivia.correct_answers,
+                        Trivia.incorrect_answers,
+                        Trivia.points,
+                    )
+                    .order_by(SQL("points").desc())
+                    .limit(5)
+                    .tuples()
+                )
             else:
-                users = list(Trivia.select(
-                    Trivia.user_id,
-                    Trivia.correct_answers,
-                    Trivia.incorrect_answers,
-                    Trivia.points
-                ).where(
-                    event.guild.id == Trivia.guild_id
-                ).order_by(SQL('points').desc()).limit(5).tuples())
+                users = list(
+                    Trivia.select(
+                        Trivia.user_id,
+                        Trivia.correct_answers,
+                        Trivia.incorrect_answers,
+                        Trivia.points,
+                    )
+                    .where(event.guild.id == Trivia.guild_id)
+                    .order_by(SQL("points").desc())
+                    .limit(5)
+                    .tuples()
+                )
 
         except Exception as e:
             print(traceback.format_exc())
-            return event.msg.reply('Failed to grab leaderboard stats: ```{}```'.format(e))
+            return event.msg.reply(
+                "Failed to grab leaderboard stats: ```{}```".format(e)
+            )
 
-        event.msg.reply('**TOP TRIVIA EXPERTS**\n' + (len(users) > 0 and '\n'.join(
-            '{}. **{}** {}\n <:green_tick:435164337167138826> {} <:red_tick:435164344125489155> {}\n**{}** points'.format( # noqa
-                i + 1,
-                (self.state.users.get(row[0]) and self.state.users.get(row[0]).username or 'Invalid User'),
-                ':crown:' if i == 0 else '',
-                row[1],
-                row[2],
-                row[3]
-            ) for i, row in enumerate(users)) or '***No trivia stats found for this server***'
-        ))
+        event.msg.reply(
+            "**TOP TRIVIA EXPERTS**\n"
+            + (
+                len(users) > 0
+                and "\n".join(
+                    "{}. **{}** {}\n <:green_tick:435164337167138826> {} <:red_tick:435164344125489155> {}\n**{}** points".format(  # noqa
+                        i + 1,
+                        (
+                            self.state.users.get(row[0])
+                            and self.state.users.get(row[0]).username
+                            or "Invalid User"
+                        ),
+                        ":crown:" if i == 0 else "",
+                        row[1],
+                        row[2],
+                        row[3],
+                    )
+                    for i, row in enumerate(users)
+                )
+                or "***No trivia stats found for this server***"
+            )
+        )
 
     # End
 
-    @Plugin.command('answer', '<number:int>')
+    @Plugin.command("answer", "<number:int>")
     def on_answer(self, event, number):
-        if self.config.mode != 'command':
-            event.msg.reply('Sorry, command mode is disabled. Please just respond with the number you wish to use.')
+        if self.config.mode != "command":
+            event.msg.reply(
+                "Sorry, command mode is disabled. Please just respond with the number you wish to use."
+            )
             return
 
         guild_id = event.msg.guild.id
 
         # Make sure there is an active question
         if guild_id not in self.active_servers:
-            event.msg.reply('There is not currently an active question!')
+            event.msg.reply("There is not currently an active question!")
             return
 
         question = self.active_servers[guild_id]
 
         # Check if person calling it is the one answering as well for lock
-        if self.config.lock == 'True' or self.config.lock:
+        if self.config.lock == "True" or self.config.lock:
             # Do checks
             if question.caller != event.author.id:
                 return
@@ -230,38 +281,39 @@ class TriviaPlugin(Plugin):
 
         # Returns the created/got stats and True/False if it was created or not.
         trivia_stats, _created = Trivia.get_or_create(
-           guild_id=guild_id,
-           user_id=event.author.id,
-           defaults={
-               'correct_answers': 0,
-               'incorrect_answers': 0,
-               'points': 0
-           }
+            guild_id=guild_id,
+            user_id=event.author.id,
+            defaults={"correct_answers": 0, "incorrect_answers": 0, "points": 0},
         )
 
         # Now let's check if it's right or not
         if question.answers[number - 1] == question.answer:
-            if question.difficulty == 'hard':
+            if question.difficulty == "hard":
                 points_gained = 3
-            elif question.difficulty == 'medium':
+            elif question.difficulty == "medium":
                 points_gained = 2
             else:
                 points_gained = 1
 
-            event.msg.reply('You got it right! Awesome job!\nYou got **{}** point(s)! You now have **{}**'.format(
-                points_gained,
-                trivia_stats.points + points_gained
-            ))
+            event.msg.reply(
+                "You got it right! Awesome job!\nYou got **{}** point(s)! You now have **{}**".format(
+                    points_gained, trivia_stats.points + points_gained
+                )
+            )
 
-            Trivia.update({
-                Trivia.points: Trivia.points + points_gained,
-                Trivia.correct_answers: Trivia.correct_answers + 1
-            }).where(Trivia.user_id == event.author.id).execute()
+            Trivia.update(
+                {
+                    Trivia.points: Trivia.points + points_gained,
+                    Trivia.correct_answers: Trivia.correct_answers + 1,
+                }
+            ).where(Trivia.user_id == event.author.id).execute()
         else:
-            event.msg.reply(f"Nope, sorry.. The correct answer was **{question.answer}**")
+            event.msg.reply(
+                f"Nope, sorry.. The correct answer was **{question.answer}**"
+            )
 
-            Trivia.update({
-                Trivia.incorrect_answers: Trivia.incorrect_answers + 1
-            }).where(Trivia.user_id == event.author.id).execute()
+            Trivia.update(
+                {Trivia.incorrect_answers: Trivia.incorrect_answers + 1}
+            ).where(Trivia.user_id == event.author.id).execute()
 
         del self.active_servers[guild_id]

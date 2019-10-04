@@ -12,11 +12,9 @@ class User(BaseModel):
     user_rank = SmallIntegerField(default=0)
 
     class Meta:
-        db_table = 'users'
+        db_table = "users"
 
-        indexes = (
-            (('id', 'username', 'discriminator'), True),
-        )
+        indexes = ((("id", "username", "discriminator"), True),)
 
 
 @BaseModel.register
@@ -29,8 +27,6 @@ class Trivia(BaseModel):
     points = SmallIntegerField()  # Small should be good.. right? :thonk:
 
     class Meta:
-        db_table = 'trivia'
+        db_table = "trivia"
 
-        indexes = (
-            (('guild_id', 'user_id'), False),
-        )
+        indexes = ((("guild_id", "user_id"), False),)
